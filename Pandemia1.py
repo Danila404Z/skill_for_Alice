@@ -42,7 +42,7 @@ player_class = {
 }
 
 
-def offer_class(user_id, req, res, count=None):
+def offer_class(user_id, req, res):
     try:
         answer = req['request']['payload']['fight']
     except KeyError:
@@ -59,37 +59,88 @@ def offer_class(user_id, req, res, count=None):
         rules(user_id, req, res)
 
 
-def offer_adventure(user_id, req, res, count=None):
+def offer_adventure(user_id, req, res):
     for i in req['request']['nlu']['entities']:
         if i['type'] == 'YANDEX.NUMBER':
             if couth := i['value']:
                 session_state[user_id]['integer'] = couth
-                dialog(user_id, res, couth)
+                print(couth)
+                count = couth - 1
+                # dialog(user_id, req, res, couth, count)
+                session_state[user_id] = {
+                    'state': 3
+                }
     else:
         res['response']['text'] = 'Повторите, пожалуйста.'
 
 
-def dialog(user_id, res, couth):
-    res['response']['text'] = "FFFFFFF"
-    for i in range(couth):
-        res['response']['text'] = f'Назовите имя игрока под номером {i + 1}'
-        session_state[user_id] = {
-            'state': 3
-        }
+def difficulty_level(user_id, req, res):
+    print("HELLO")
+    res['response'] = {
+        "text": "Выберите уровень сложности",
+        "buttons": [
+            {
+                "title": "Начальный",
+                "payload": {'text': "Начальный"},
+                'hide': True
+            },
+            {
+                "title": "Средний",
+                "payload": {'text': "Средний"},
+                'hide': True
+            },
+            {
+                "title": "Продвинутый",
+                "payload": {'text': "Продвинутый"},
+                'hide': True
+            }
+        ]
+    }
+    session_state[user_id] = {
+        'state': 9
+    }
+    return
+
+
+def dialog(user_id, req, res, couth, count):
+    print("FFFFFFF")
+    print(count)
+    if count != -1:
+        res['response']['text'] = f'Назовите имя игрока под номером {couth - count}'
+        count = count - 1
+        nicknames(user_id, req, res, couth, count)
         return
+    else:
+        res['response']['text'] = 'битва над именами закончена'
 
 
-def offer_fight(user_id, req, res, count):
+def nicknames(user_id, req, res, couth, count):
     print(count)
     for entity in req['request']['nlu']['entities']:
+        print(entity['type'])
         if entity['type'] == 'YANDEX.FIO':
-            if name := entity['value'].get('first_name'):
-                name = name.capitalize()
-                session_state[user_id]['first_name'] = name
-                res['response']['text'] = f"Приятно познакомиться {name}"
-                names.append(name)
+            if nickname := entity['value'].get('first_name'):
+                nickname = nickname.capitalize()
+                session_state[user_id]['first_name'] = nickname
+                print(nickname)
+                res['response']['text'] = f"Приятно познакомиться {nickname}"
+                names.append(nickname)
+                dialog(user_id, req, res, couth, count)
                 return
-                
+    else:
+        res['response']['text'] = 'Не расслышала имя. Повторите, пожалуйста.'
+
+
+def level(user_id, req, res):
+    if req['request']['payload']['text'] == "Начальный":
+        pass
+    elif req['request']['payload']['text'] == "Средний":
+        pass
+    elif req['request']['payload']['text'] == "Продвинутый":
+        pass
+    res['response']['text'] = 'поздравляю, вы выбрали уровень сложности'
+    return
+
 
 def end_game(user_id, req, res):
     try:
@@ -150,7 +201,7 @@ def rules(user_id, req, res):
     return
 
 
-def dil(user_id, req, res, count):
+def dil(user_id, req, res):
     if req['request']['payload']['text'] == "1":
         res['response'] = {
             "text": "Ход игрока состоит из нескольких шагов: \n *каждый ход у игрока есть  4 действия;\n *добрать карты игроков;\n *обнаружить болезнь",
@@ -259,10 +310,23 @@ def dil(user_id, req, res, count):
     elif req['request']['payload']['text'] == "3":
         res['response']['text'] = "человек"
     elif req['request']['payload']['text'] == "4":
-        res['response']['text'] = "на свеете"
+        res['response'] = {
+            "text": "Игроки побеждают, как только изобретут все 4 лекарства \n Есть 3 варианта проигрыша игроков: \n *если маркер вспышек достиг последнего деления на треке \n *если болезнь победила \n *если карты закончились",
+            "buttons": [
+                {
+                    "title": "Назад",
+                    "payload": {'fight': True},
+                    'hide': True
+                }
+            ]
+        }
+        session_state[user_id] = {
+            'state': 8
+        }
+        return
 
 
-def adventure(user_id, req, res, count):
+def adventure(user_id, req, res):
     try:
         selected_class = req['request']['payload']['class']
     except KeyError:
@@ -272,48 +336,118 @@ def adventure(user_id, req, res, count):
         'class': selected_class,
         'state': 8
     })
-    res['response'] = {
-        'text': f"{selected_class.capitalize()} - прекрассный выбор",
-        'card': {
-            'type': 'BigImage',
-            'image_id': player_class[selected_class]['img'],
-            'title': f"{selected_class.capitalize()} - прекрассный выбор"
-        },
-        'buttons': [
-            {
-                "title": "В бой",
-                "payload": {'fight': True},
-                'hide': True
+    if selected_class == "ДИСПЕЧЕР":
+        res['response'] = {
+            'text': f"{selected_class.capitalize()} - прекраccный выбор",
+            'card': {
+                'type': 'BigImage',
+                'image_id': player_class[selected_class]['img'],
+                'title': f"{selected_class.capitalize()} может потратить действие, чтобы: *передвинуть любого игрока в город, где уже есть игрок."
             },
-            {
-                "title": "Завершить приключение",
-                "payload": {'fight': False},
-                'hide': True
-            }
-        ]
-    }
-    return
+            'buttons': [
+                {
+                    "title": "Меню игроков",
+                    "payload": {'fight': True},
+                    'hide': True
+                }
+            ]
+        }
+        return
+    elif selected_class == "ВРАЧ":
+        res['response'] = {
+            'text': f"{selected_class.capitalize()} - прекраccный выбор",
+            'card': {
+                'type': 'BigImage',
+                'image_id': player_class[selected_class]['img'],
+                'title': f"{selected_class.capitalize()} при лечении болезни убирает все кубики одного цвета, с лекарством убирает кубики, когда наступает на поле"
+            },
+            'buttons': [
+                {
+                    "title": "Меню игроков",
+                    "payload": {'fight': True},
+                    'hide': True
+                }
+            ]
+        }
+        return
+    elif selected_class == "ИНЖЕНЕР":
+        res['response'] = {
+            'text': f"{selected_class.capitalize()} - прекраccный выбор",
+            'card': {
+                'type': 'BigImage',
+                'image_id': player_class[selected_class]['img'],
+                'title': f"{selected_class.capitalize()} тратит действие: строит исследовательскую станцию, либо может переместиться от станции к станции без карты города"
+            },
+            'buttons': [
+                {
+                    "title": "Меню игроков",
+                    "payload": {'fight': True},
+                    'hide': True
+                }
+            ]
+        }
+        return
+    elif selected_class == "СПЕЦИАЛИСТ ПО КАРАНТИНУ":
+        res['response'] = {
+            'text': f"{selected_class.capitalize()} - прекраccный выбор",
+            'card': {
+                'type': 'BigImage',
+                'image_id': player_class[selected_class]['img'],
+                'title': f"{selected_class.capitalize()} предотвращает вспышки и обнаружение болезни в том городе, где находится"
+            },
+            'buttons': [
+                {
+                    "title": "Меню игроков",
+                    "payload": {'fight': True},
+                    'hide': True
+                }
+            ]
+        }
+        return
+    elif selected_class == "УЧЕНЫЙ":
+        res['response'] = {
+            'text': f"{selected_class.capitalize()} - прекраccный выбор",
+            'card': {
+                'type': 'BigImage',
+                'image_id': player_class[selected_class]['img'],
+                'title': f"{selected_class.capitalize()} необходимо карты, чтобы изобрести лекарство от болезни"
+            },
+            'buttons': [
+                {
+                    "title": "Меню игроков",
+                    "payload": {'fight': True},
+                    'hide': True
+                }
+            ]
+        }
+        return
 
 
-def prod(user_id, req, res, count):
+def prod(user_id, req, res):
     try:
         answer = req['request']['payload']['fight']
     except KeyError:
         res['response']['text'] = "Пожалуйста, выберите действие"
         return
     if answer:
-        res['response']['text'] = "Ты победил"
+        rules(user_id, req, res)
     else:
         res['response']['text'] = "Ты проиграл"
 
 
-def player_turn(user_id, req, res, count):
+def player_turn(user_id, req, res):
     if req['request']['payload']['text'] == "добор карт":
         res['response']['text'] = "В игральную руку добавляются 2 карты городов, но их должно быть не больше 6"
     elif req['request']['payload']['text'] == "4 действия":
         pass
     elif req['request']['payload']['text'] == "Обнаружение болезни":
         res['response']['text'] = "Вы обнаруживаете болезни в некоторых городах, осторожно, могут возникнуть вспышки"
+    session_state[user_id] = {
+        'state': 10
+    }
+
+
+def back(user_id, req, res):
     res['response'] = {
         "text": "Назад?",
         "buttons": [
@@ -354,18 +488,20 @@ def handle_dialog(req, res):
             'state': 1
         }
         return
-    states[session_state[user_id]['state']](user_id, req, res, count)
+    states[session_state[user_id]['state']](user_id, req, res)
 
 
 states = {
     1: offer_class,
     2: offer_adventure,
-    3: offer_fight,
+    3: difficulty_level,
     4: end_game,
     5: dil,
     6: player_turn,
     7: adventure,
-    8: prod
+    8: prod,
+    9: level,
+    10: back
 }
 session_state = {}
 
