@@ -1,11 +1,16 @@
 import json
 import random
-
+from flask import Flask
+from data.users import User
+from data import db_session
 from flask import Flask, request, jsonify
 from flask_ngrok import run_with_ngrok
 
 app = Flask(__name__)
 run_with_ngrok(app)
+app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
+
+randoms_city = []
 
 names = []
 
@@ -41,6 +46,19 @@ player_class = {
 
 }
 
+map = {
+    'name': 'Карта', 'img': '1540737/9a736424f0bdd7a7b363'}
+
+
+
+enemy_list = [
+    {'name': 'ДИСПЕЧЕР', 'img': '937455/ca2af00e06e35553463f'},
+    {'name': 'ВРАЧ', 'img': '1540737/d05372b3940e40006578'},
+    {'name': 'ИНЖЕНЕР', 'img': '997614/d82a9562cabf518d2f34'},
+    {'name': 'СПЕЦИАЛИСТ ПО КАРАНТИНУ', 'img': '1656841/b74e609ca15422b99a9e'},
+    {'name': 'УЧЕНЫЙ', 'img': '1521359/0b9e7ad83c45b1177a6a'}
+]
+
 
 def offer_class(user_id, req, res):
     try:
@@ -60,24 +78,36 @@ def offer_class(user_id, req, res):
 
 
 def offer_adventure(user_id, req, res):
+    count = 0
+    couth = 0
     for i in req['request']['nlu']['entities']:
         if i['type'] == 'YANDEX.NUMBER':
             if couth := i['value']:
                 session_state[user_id]['integer'] = couth
                 print(couth)
                 count = couth - 1
-                # dialog(user_id, req, res, couth, count)
-                session_state[user_id] = {
-                    'state': 3
-                }
-    else:
-        res['response']['text'] = 'Повторите, пожалуйста.'
+    nicknames(user_id, req, res, couth, count)
 
 
 def difficulty_level(user_id, req, res):
     print("HELLO")
+
+def dialog(user_id, req, res, couth, count):
+    print("FFFFFFF")
+    print(count)
+    for entity in req['request']['nlu']['entities']:
+        if entity['type'] != 'YANDEX.FIO':
+            res['response']['text'] = f'Назовите имена игроков поочередно'
+            count = count - 1
+            return
+
+        else:
+            nicknames(user_id, req, res, couth, count)
+
+
+def over(user_id, req, res):
     res['response'] = {
-        "text": "Выберите уровень сложности",
+        "text": "Приятно познакомиться! Выберите уровень сложности",
         "buttons": [
             {
                 "title": "Начальный",
@@ -102,33 +132,27 @@ def difficulty_level(user_id, req, res):
     return
 
 
-def dialog(user_id, req, res, couth, count):
-    print("FFFFFFF")
-    print(count)
-    if count != -1:
-        res['response']['text'] = f'Назовите имя игрока под номером {couth - count}'
-        count = count - 1
-        nicknames(user_id, req, res, couth, count)
-        return
-    else:
-        res['response']['text'] = 'битва над именами закончена'
-
-
 def nicknames(user_id, req, res, couth, count):
-    print(count)
+    if count == 0:
+        res['response']['text'] = f'Назовите имя игрока'
+        hehe = "ghb"
     for entity in req['request']['nlu']['entities']:
-        print(entity['type'])
         if entity['type'] == 'YANDEX.FIO':
             if nickname := entity['value'].get('first_name'):
                 nickname = nickname.capitalize()
                 session_state[user_id]['first_name'] = nickname
-                print(nickname)
-                res['response']['text'] = f"Приятно познакомиться {nickname}"
-                names.append(nickname)
-                dialog(user_id, req, res, couth, count)
-                return
+                if hehe == "ghb":
+                    res['response']['text'] = f"Приятно познакомиться {nickname}"
+                    names.append(nickname)
+                    session_state[user_id] = {
+                        'state': 11
+                    }
+                    return
+                else:
+                    res['response']['text'] = f"Приятно познакомиться {nickname}"
+                    names.append(nickname)
     else:
-        res['response']['text'] = 'Не расслышала имя. Повторите, пожалуйста.'
+        dialog(user_id, req, res, couth, count)
 
 
 def level(user_id, req, res):
@@ -138,8 +162,96 @@ def level(user_id, req, res):
         pass
     elif req['request']['payload']['text'] == "Продвинутый":
         pass
-    res['response']['text'] = 'поздравляю, вы выбрали уровень сложности'
+    res['response']['text'] = 'поздравляю, вы выбрали уровень сложности, получить способность?'
+    session_state[user_id] = {
+        'state': 12
+    }
     return
+
+
+def dop_player_turn_starts(user_id, req, res):
+    enemy = random.choice(enemy_list)
+    res['response'] = {
+        "text": f"{enemy['name']} - ваша способность, подробнее о ней вы можете прочитать в правилах",
+        "card": {
+            'type': "BigImage",
+            "image_id": enemy['img'],
+            'title': f"{enemy['name']} - способность 1 игрока. Получить способность?"
+        }
+    }
+    session_state[user_id] = {
+        'state': 15
+    }
+
+
+def dop_player_turn_starts1(user_id, req, res):
+    enemy = random.choice(enemy_list)
+    res['response'] = {
+        "text": f"{enemy['name']} - ваша способность, подробнее о ней вы можете прочитать в правилах",
+        "card": {
+            'type': "BigImage",
+            "image_id": enemy['img'],
+            'title': f"{enemy['name']} - способность игрока. Игрок под номером 1, продолжить?"
+        }
+    }
+    session_state[user_id] = {
+        'state': 13
+    }
+
+
+def player_turn_starts(user_id, req, res):
+    res['response'] = {
+        "text": "Сначала нужно осуществить 4 передвижения",
+        "buttons": [
+            {
+                "title": "Передвижение",
+                "payload": {'text': "Передвижение"},
+                'hide': True
+            },
+            {
+                "title": "Колода",
+                "payload": {'text': "Колода"},
+                'hide': True
+            },
+            {
+                "title": "Посмотреть карту",
+                "payload": {'text': "Посмотреть карту"},
+                'hide': True
+            }
+        ]
+    }
+    session_state[user_id] = {
+        'state': 14
+    }
+    return
+
+
+def level1(user_id, req, res):
+    if req['request']['payload']['text'] == "Передвижение":
+        pass
+    elif req['request']['payload']['text'] == "Колода":
+        db_sess = db_session.create_session()
+        user = db_sess.query(User).all()
+        player1 = []
+        player2 = []
+        for q in user:
+            randoms_city.append(q.city)
+        print(len(randoms_city))
+        player1.append(random.SystemRandom().sample(randoms_city, 6))
+        player2.append(random.SystemRandom().sample(randoms_city, 6))
+        print(player1)
+        res['response']['text'] = f'Ваша колода: \n {", ".join(*player1)}'
+    elif req['request']['payload']['text'] == "Посмотреть карту":
+        res['response'] = {
+            "text": f"{map['name']}",
+            "card": {
+                'type': "BigImage",
+                "image_id": map['img'],
+                'title': f"{map['name']}"}
+        }
+    session_state[user_id] = {
+        'state': 13
+    }
 
 
 def end_game(user_id, req, res):
@@ -491,6 +603,11 @@ def handle_dialog(req, res):
     states[session_state[user_id]['state']](user_id, req, res)
 
 
+def main():
+    db_session.global_init("db/cities.db")
+    app.run()
+
+
 states = {
     1: offer_class,
     2: offer_adventure,
@@ -501,9 +618,14 @@ states = {
     7: adventure,
     8: prod,
     9: level,
-    10: back
+    10: back,
+    11: over,
+    12: dop_player_turn_starts,
+    13: player_turn_starts,
+    14: level1,
+    15: dop_player_turn_starts1
 }
 session_state = {}
 
 if __name__ == '__main__':
-    app.run()
+    main()
