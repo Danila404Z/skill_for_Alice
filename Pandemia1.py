@@ -14,6 +14,7 @@ randoms_city = []
 
 names = []
 
+
 player_class = {
     'ЭКСПЕРТ ПО ЧС': {
         'name': 'ЭКСПЕРТ ПО ЧС',
@@ -91,6 +92,7 @@ def offer_adventure(user_id, req, res):
 
 def difficulty_level(user_id, req, res):
     print("HELLO")
+
 
 def dialog(user_id, req, res, couth, count):
     print("FFFFFFF")
@@ -203,19 +205,24 @@ def player_turn_starts(user_id, req, res):
     res['response'] = {
         "text": "Сначала нужно осуществить 4 передвижения",
         "buttons": [
-            {
-                "title": "Передвижение",
-                "payload": {'text': "Передвижение"},
-                'hide': True
-            },
+            # {
+            #     "title": "Передвижение",
+            #     "payload": {'text': "Передвижение"},
+            #     'hide': True
+            # },
             {
                 "title": "Колода",
                 "payload": {'text': "Колода"},
                 'hide': True
             },
+            # {
+            #     "title": "Посмотреть карту",
+            #     "payload": {'text': "Посмотреть карту"},
+            #     'hide': True
+            # },
             {
-                "title": "Посмотреть карту",
-                "payload": {'text': "Посмотреть карту"},
+                "title": "Лечение болезни",
+                "payload": {'text': "Лечение болезни"},
                 'hide': True
             }
         ]
@@ -227,20 +234,38 @@ def player_turn_starts(user_id, req, res):
 
 
 def level1(user_id, req, res):
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).all()
+    player1 = []
+    player2 = []
+    for q in user:
+        randoms_city.append(q.city)
+    player1.append(random.SystemRandom().sample(randoms_city, 6))
+    player2.append(random.SystemRandom().sample(randoms_city, 6))
+    print(randoms_city)
     if req['request']['payload']['text'] == "Передвижение":
-        pass
+        res['response'] = {
+            "text": "Выберите одно из предложенных",
+            "buttons": [
+                {
+                    "title": "Прямой рейс",
+                    "payload": {'text': "Прямой рейс"},
+                    'hide': True
+                },
+                {
+                    "title": "Чартерный рейс",
+                    "payload": {'text': "Чартерный рейс"},
+                    'hide': True
+                }
+            ]
+        }
+        prov(user_id, req, res, player1, player2)
     elif req['request']['payload']['text'] == "Колода":
-        db_sess = db_session.create_session()
-        user = db_sess.query(User).all()
-        player1 = []
-        player2 = []
-        for q in user:
-            randoms_city.append(q.city)
-        print(len(randoms_city))
-        player1.append(random.SystemRandom().sample(randoms_city, 6))
-        player2.append(random.SystemRandom().sample(randoms_city, 6))
-        print(player1)
         res['response']['text'] = f'Ваша колода: \n {", ".join(*player1)}'
+        session_state[user_id] = {
+            'state': 14
+        }
+        return
     elif req['request']['payload']['text'] == "Посмотреть карту":
         res['response'] = {
             "text": f"{map['name']}",
@@ -248,10 +273,109 @@ def level1(user_id, req, res):
                 'type': "BigImage",
                 "image_id": map['img'],
                 'title': f"{map['name']}"}
+            }
+        session_state[user_id] = {
+            'state': 13
         }
-    session_state[user_id] = {
-        'state': 13
-    }
+        return
+    elif req['request']['payload']['text'] == "Лечение болезни":
+        if ['АТЛАНТА', 'МОНРЕАЛЬ', 'ПАРИЖ', 'ЧИКАГО', 'ЛОНДОН'] in player1 or ['САНКТ-ПЕТЕРБУРГ', 'САН-ФРАНЦИСКО', 'ВАШИНГТОН', 'ЭССЕН', 'НЬЮ-ЙОРК'] in player1 or ['МИЛАН',  'МАДРИД', 'САН-ФРАНЦИСКО', 'ЭССЕН', 'ПАРИЖ'] in player1:
+            res['response'] = {
+                "text": "У вас появился шанс сделать лекарство?!",
+                "buttons": [
+                    {
+                        "title": "Получить лекарство",
+                        "payload": {'fight': False},
+                        'hide': True
+                    }
+                    ]
+            }
+            session_state[user_id] = {
+                'state': 16
+            }
+            return
+        elif ['ЛОС-АНЖЕЛЕС', 'ЙОХАННЕНСБУРГ',  'МАЙАМИ', 'МЕХИКО', 'САН-ПАУЛУ'] in player1 or ['ЛАГОС', 'САНТЬЯГО', 'ЛИМА', 'БУЭНОС-АЙРЕС', 'КИНШАСА'] in player1 or ['ХАРТУМ', 'ЛАГОС', 'ЛИМА', 'ЛОС-АНЖЕЛЕС', 'КИНШАСА'] in player1:
+            res['response'] = {
+                "text": "У вас появился шанс сделать лекарство?!",
+                "buttons": [
+                    {
+                        "title": "Получить лекарство",
+                        "payload": {'fight': False},
+                        'hide': True
+                    }
+                ]
+            }
+            session_state[user_id] = {
+                'state': 16
+            }
+            return
+        elif ['МАНИЛА', 'ХОШИМИН', 'СЕУЛ', 'СИДНЕЙ', 'ТОКИО'] in player1 or ['ГОНКОНГ', 'ТАЙБЭЙ', 'ДЖАКАРТА', 'ПЕКИН', 'БАНГКОК'] in player1 or ['ОСАКА', 'БОГОТА', 'ШАНХАЙ', 'БАНГКОК', 'ДЖАКАРТА'] in player1:
+            res['response'] = {
+                "text": "У вас появился шанс сделать лекарство?!",
+                "buttons": [
+                    {
+                        "title": "Получить лекарство",
+                        "payload": {'fight': False},
+                        'hide': True
+                    }
+                ]
+            }
+            session_state[user_id] = {
+                'state': 16
+            }
+            return
+        elif ['БАГДАД', 'КАЛЬКУТТА', 'МОСКВА', 'ЧЕННАИ', 'МУМБАИ'] in player1 or ['КАРАЧИ', 'ЭР-РИЯД', 'КАИР', 'ДЕЛИ', 'ТЕГЕРАН'] in player1 or ['АЛЖИР', 'СТАМБУЛ', 'ЭР-РИЯД', 'МУМБАИ', 'КАЛЬКУТТА'] in player1:
+            res['response'] = {
+                "text": "У вас появился шанс сделать лекарство?!",
+                "buttons": [
+                    {
+                        "title": "Получить лекарство",
+                        "payload": {'fight': False},
+                        'hide': True
+                    }
+                ]
+            }
+            session_state[user_id] = {
+                'state': 16
+            }
+            return
+        else:
+            res['response'] = {
+                "text": "Хотите ли вы добрать карты?",
+                "buttons": [
+                    {
+                        "title": "Добрать карты",
+                        "payload": {'text': "Добрать карты"},
+                        'hide': True
+                    }
+                ]
+            }
+            session_state[user_id] = {
+                'state': 17
+            }
+            return
+
+
+def dobor_card(user_id, req, res):
+    if req['request']['payload']['text'] == "Добрать карты":
+        pass
+
+
+def prov(user_id, req, res, player1, player2):
+    if req['request']['payload']['text'] == "Прямой рейс":
+        res['response']['text'] = f'Напишите любой город из вашей колоды куда хотите переместиться'
+        # session_state[user_id] = {
+        #     'state': 16
+        # }
+        city_pere(user_id, req, res, player1, player2)
+        return
+    elif req['request']['payload']['text'] == "Чартерный рейс":
+        pass
+
+
+def city_pere(user_id, req, res, player1, player2):
+    if res['response']['text'] in player1:
+        print("TYYYDAAAAA")
 
 
 def end_game(user_id, req, res):
@@ -261,10 +385,10 @@ def end_game(user_id, req, res):
         res['response']['text'] = "Пожалуйста, выбери действие"
         return
     if not answer:
-        res['response']['text'] = "Ваше приключение закончилось, не успев начаться"
+        res['response']['text'] = "Урааа! Победа! Вы смогли изобрести лекарство от смертельной болезни. Вы спасли мир"
+        res['response']['end_session'] = True
     else:
         res['response']['text'] = "Вы победили противника, о вашем подвиге не забудут"
-    res['response']['end_session'] = True
 
 
 @app.route('/post', methods=['POST'])
@@ -276,7 +400,6 @@ def get_alice_request():
             'end_session': False
         }
     }
-
     handle_dialog(request.json, response)
     return jsonify(response)
 
@@ -316,13 +439,13 @@ def rules(user_id, req, res):
 def dil(user_id, req, res):
     if req['request']['payload']['text'] == "1":
         res['response'] = {
-            "text": "Ход игрока состоит из нескольких шагов: \n *каждый ход у игрока есть  4 действия;\n *добрать карты игроков;\n *обнаружить болезнь",
+            "text": "Ход игрока состоит из нескольких шагов: \n *обнаружить болезнь \n *добрать карты игроков при необходимости, побеждает тот кто первый изобретет лекарство",
             "buttons": [
-                {
-                    "title": "4 действия",
-                    "payload": {'text': "4 действия"},
-                    'hide': True
-                },
+                # {
+                #     "title": "4 действия",
+                #     "payload": {'text': "4 действия"},
+                #     'hide': True
+                # },
                 {
                     "title": "добор карт",
                     "payload": {'text': "добор карт"},
@@ -612,7 +735,6 @@ states = {
     1: offer_class,
     2: offer_adventure,
     3: difficulty_level,
-    4: end_game,
     5: dil,
     6: player_turn,
     7: adventure,
@@ -623,7 +745,10 @@ states = {
     12: dop_player_turn_starts,
     13: player_turn_starts,
     14: level1,
-    15: dop_player_turn_starts1
+    15: dop_player_turn_starts1,
+    # 16: city_pere
+    16: end_game,
+    17: dobor_card
 }
 session_state = {}
 
