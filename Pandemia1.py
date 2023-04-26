@@ -50,7 +50,8 @@ player_class = {
 map = {
     'name': 'Карта', 'img': '1540737/9a736424f0bdd7a7b363'}
 
-
+win = {
+    'name': 'победа', 'img': '213044/5ee9e336c1081fcc2827'}
 
 enemy_list = [
     {'name': 'ДИСПЕЧЕР', 'img': '937455/ca2af00e06e35553463f'},
@@ -242,26 +243,36 @@ def level1(user_id, req, res):
     for q in user:
         randoms_city.append(q.city)
     player1.append(random.SystemRandom().sample(randoms_city, 6))
+    # player1 = ['МИЛАН',  'МАДРИД', 'САНКТ-ПЕТЕРБУРГ', 'САН-ФРАНЦИСКО', 'ВАШИНГТОН']
     player2.append(random.SystemRandom().sample(randoms_city, 6))
-    if req['request']['payload']['text'] == "Передвижение":
+    # if req['request']['payload']['text'] == "Передвижение":
+    #     res['response'] = {
+    #         "text": "Выберите одно из предложенных",
+    #         "buttons": [
+    #             {
+    #                 "title": "Прямой рейс",
+    #                 "payload": {'text': "Прямой рейс"},
+    #                 'hide': True
+    #             },
+    #             {
+    #                 "title": "Чартерный рейс",
+    #                 "payload": {'text': "Чартерный рейс"},
+    #                 'hide': True
+    #             }
+    #         ]
+    #     }
+    #     prov(user_id, req, res, player1, player2)
+    if req['request']['payload']['text'] == "Колода":
         res['response'] = {
-            "text": "Выберите одно из предложенных",
+            "text": f'Ваша колода: \n {", ".join(*player1)}',
             "buttons": [
-                {
-                    "title": "Прямой рейс",
-                    "payload": {'text': "Прямой рейс"},
-                    'hide': True
-                },
-                {
-                    "title": "Чартерный рейс",
-                    "payload": {'text': "Чартерный рейс"},
-                    'hide': True
-                }
-            ]
+        {
+            "title": "Лечение болезни",
+            "payload": {'text': "Лечение болезни"},
+            'hide': True
         }
-        prov(user_id, req, res, player1, player2)
-    elif req['request']['payload']['text'] == "Колода":
-        res['response']['text'] = f'Ваша колода: \n {", ".join(*player1)}'
+        ]
+        }
         session_state[user_id] = {
             'state': 14
         }
@@ -280,10 +291,13 @@ def level1(user_id, req, res):
         return
     elif req['request']['payload']['text'] == "Лечение болезни":
         count = 0
+        count_one = 0
+        count_two = 0
+        count_three = 0
         for i in player1:
             if i in ['МИЛАН',  'МАДРИД', 'САНКТ-ПЕТЕРБУРГ', 'САН-ФРАНЦИСКО', 'ВАШИНГТОН', 'ЭССЕН', 'НЬЮ-ЙОРК', 'АТЛАНТА', 'МОНРЕАЛЬ', 'ПАРИЖ', 'ЧИКАГО', 'ЛОНДОН']:
                 count += 1
-                if count == 5:
+                if count == 3:
                     res['response'] = {
                         "text": "У вас появился шанс сделать лекарство?!",
                         "buttons": [
@@ -298,51 +312,57 @@ def level1(user_id, req, res):
                         'state': 16
                     }
                     return
-        if ['ЛОС-АНЖЕЛЕС', 'ЙОХАННЕНСБУРГ',  'МАЙАМИ', 'МЕХИКО', 'САН-ПАУЛУ'] in player1 or ['ЛАГОС', 'САНТЬЯГО', 'ЛИМА', 'БУЭНОС-АЙРЕС', 'КИНШАСА'] in player1 or ['ХАРТУМ', 'ЛАГОС', 'ЛИМА', 'ЛОС-АНЖЕЛЕС', 'КИНШАСА'] in player1 or ['КИНШАСА', 'САН-ПАУЛУ', 'ЛАГОС', 'ЛОС-АНЖЕЛЕС', 'КИНШАСА'] in player1:
-            res['response'] = {
-                "text": "У вас появился шанс сделать лекарство?!",
-                "buttons": [
-                    {
-                        "title": "Получить лекарство",
-                        "payload": {'fight': False},
-                        'hide': True
+            elif i in ['ЛОС-АНЖЕЛЕС', 'ЙОХАННЕНСБУРГ',  'МАЙАМИ', 'МЕХИКО', 'САН-ПАУЛУ',  'ЛАГОС', 'САНТЬЯГО', 'ЛИМА', 'БУЭНОС-АЙРЕС', 'КИНШАСА', 'ХАРТУМ']:
+                count_one += 1
+                if count_one == 3:
+                    res['response'] = {
+                        "text": "У вас появился шанс сделать лекарство?!",
+                        "buttons": [
+                            {
+                                "title": "Получить лекарство",
+                                "payload": {'fight': False},
+                                'hide': True
+                            }
+                        ]
                     }
-                ]
-            }
-            session_state[user_id] = {
-                'state': 16
-            }
-            return
-        elif ['МАНИЛА', 'ХОШИМИН', 'СЕУЛ', 'СИДНЕЙ', 'ТОКИО'] in player1 or ['ГОНКОНГ', 'ТАЙБЭЙ', 'ДЖАКАРТА', 'ПЕКИН', 'БАНГКОК'] in player1 or ['ОСАКА', 'БОГОТА', 'ШАНХАЙ', 'БАНГКОК', 'ДЖАКАРТА'] in player1:
-            res['response'] = {
-                "text": "У вас появился шанс сделать лекарство?!",
-                "buttons": [
-                    {
-                        "title": "Получить лекарство",
-                        "payload": {'fight': False},
-                        'hide': True
+                    session_state[user_id] = {
+                        'state': 16
                     }
-                ]
-            }
-            session_state[user_id] = {
-                'state': 16
-            }
-            return
-        elif ['БАГДАД', 'КАЛЬКУТТА', 'МОСКВА', 'ЧЕННАИ', 'МУМБАИ'] in player1 or ['КАРАЧИ', 'ЭР-РИЯД', 'КАИР', 'ДЕЛИ', 'ТЕГЕРАН'] in player1 or ['АЛЖИР', 'СТАМБУЛ', 'ЭР-РИЯД', 'МУМБАИ', 'КАЛЬКУТТА'] in player1:
-            res['response'] = {
-                "text": "У вас появился шанс сделать лекарство?!",
-                "buttons": [
-                    {
-                        "title": "Получить лекарство",
-                        "payload": {'fight': False},
-                        'hide': True
+                    return
+            elif i in ['МАНИЛА', 'ХОШИМИН', 'СЕУЛ', 'СИДНЕЙ', 'ТОКИО', 'ГОНКОНГ', 'ТАЙБЭЙ', 'ДЖАКАРТА', 'ПЕКИН', 'БАНГКОК', 'ОСАКА', 'БОГОТА', 'ШАНХАЙ']:
+                count_two += 1
+                if count_two == 3:
+                    res['response'] = {
+                        "text": "У вас появился шанс сделать лекарство?!",
+                        "buttons": [
+                            {
+                                "title": "Получить лекарство",
+                                "payload": {'fight': False},
+                                'hide': True
+                            }
+                        ]
                     }
-                ]
-            }
-            session_state[user_id] = {
-                'state': 16
-            }
-            return
+                    session_state[user_id] = {
+                        'state': 16
+                    }
+                    return
+            elif i in ['БАГДАД', 'КАЛЬКУТТА', 'МОСКВА', 'ЧЕННАИ', 'МУМБАИ', 'КАРАЧИ', 'ЭР-РИЯД', 'КАИР', 'ДЕЛИ', 'ТЕГЕРАН', 'АЛЖИР', 'СТАМБУЛ']:
+                count_three += 1
+                if count_three == 3:
+                    res['response'] = {
+                        "text": "У вас появился шанс сделать лекарство?!",
+                        "buttons": [
+                            {
+                                "title": "Получить лекарство",
+                                "payload": {'fight': False},
+                                'hide': True
+                            }
+                        ]
+                    }
+                    session_state[user_id] = {
+                        'state': 16
+                    }
+                    return
         else:
             res['response'] = {
                 "text": "У вас не хватает городов, хотите ли вы добрать карты?",
@@ -358,6 +378,83 @@ def level1(user_id, req, res):
                 'state': 17
             }
             db(user_id, req, res, player1, player2)
+            count = 0
+            count_one = 0
+            count_two = 0
+            count_three = 0
+            for i in player1:
+                if i in ['МИЛАН', 'МАДРИД', 'САНКТ-ПЕТЕРБУРГ', 'САН-ФРАНЦИСКО', 'ВАШИНГТОН', 'ЭССЕН', 'НЬЮ-ЙОРК',
+                         'АТЛАНТА', 'МОНРЕАЛЬ', 'ПАРИЖ', 'ЧИКАГО', 'ЛОНДОН']:
+                    count += 1
+                    if count == 3:
+                        res['response'] = {
+                            "text": "У вас появился шанс сделать лекарство?!",
+                            "buttons": [
+                                {
+                                    "title": "Получить лекарство",
+                                    "payload": {'fight': False},
+                                    'hide': True
+                                }
+                            ]
+                        }
+                        session_state[user_id] = {
+                            'state': 16
+                        }
+                        return
+                elif i in ['ЛОС-АНЖЕЛЕС', 'ЙОХАННЕНСБУРГ', 'МАЙАМИ', 'МЕХИКО', 'САН-ПАУЛУ', 'ЛАГОС', 'САНТЬЯГО', 'ЛИМА',
+                           'БУЭНОС-АЙРЕС', 'КИНШАСА', 'ХАРТУМ']:
+                    count_one += 1
+                    if count_one == 3:
+                        res['response'] = {
+                            "text": "У вас появился шанс сделать лекарство?!",
+                            "buttons": [
+                                {
+                                    "title": "Получить лекарство",
+                                    "payload": {'fight': False},
+                                    'hide': True
+                                }
+                            ]
+                        }
+                        session_state[user_id] = {
+                            'state': 16
+                        }
+                        return
+                elif i in ['МАНИЛА', 'ХОШИМИН', 'СЕУЛ', 'СИДНЕЙ', 'ТОКИО', 'ГОНКОНГ', 'ТАЙБЭЙ', 'ДЖАКАРТА', 'ПЕКИН',
+                           'БАНГКОК', 'ОСАКА', 'БОГОТА', 'ШАНХАЙ']:
+                    count_two += 1
+                    if count_two == 3:
+                        res['response'] = {
+                            "text": "У вас появился шанс сделать лекарство?!",
+                            "buttons": [
+                                {
+                                    "title": "Получить лекарство",
+                                    "payload": {'fight': False},
+                                    'hide': True
+                                }
+                            ]
+                        }
+                        session_state[user_id] = {
+                            'state': 16
+                        }
+                        return
+                elif i in ['БАГДАД', 'КАЛЬКУТТА', 'МОСКВА', 'ЧЕННАИ', 'МУМБАИ', 'КАРАЧИ', 'ЭР-РИЯД', 'КАИР', 'ДЕЛИ',
+                           'ТЕГЕРАН', 'АЛЖИР', 'СТАМБУЛ']:
+                    count_three += 1
+                    if count_three == 3:
+                        res['response'] = {
+                            "text": "У вас появился шанс сделать лекарство?!",
+                            "buttons": [
+                                {
+                                    "title": "Получить лекарство",
+                                    "payload": {'fight': False},
+                                    'hide': True
+                                }
+                            ]
+                        }
+                        session_state[user_id] = {
+                            'state': 16
+                        }
+                        return
             return
 
 
@@ -376,21 +473,6 @@ def dobor_card(user_id, req, res):
         'state': 18
     }
     return # сделать еще функцию запихнуть все тоже самое
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def player_turn_starts_two(user_id, req, res):
@@ -452,7 +534,16 @@ def level1_two(user_id, req, res):
         }
         # prov_two(user_id, req, res, player1, player2)
     elif req['request']['payload']['text'] == "Колода":
-        res['response']['text'] = f'Ваша колода: \n {", ".join(*player2)}'
+        res['response'] = {
+            "text": f'Ваша колода: \n {", ".join(*player2)}',
+            "buttons": [
+                {
+                    "title": "Лечение болезни",
+                    "payload": {'text': "Лечение болезни"},
+                    'hide': True
+                }
+            ]
+        }
         session_state[user_id] = {
             'state': 19
         }
@@ -567,71 +658,6 @@ def dobor_card_two(user_id, req, res):
     #three(user_id, req, res)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def prov(user_id, req, res, player1, player2):
     if req['request']['payload']['text'] == "Прямой рейс":
         res['response']['text'] = f'Напишите любой город из вашей колоды куда хотите переместиться'
@@ -656,7 +682,13 @@ def end_game(user_id, req, res):
         res['response']['text'] = "Пожалуйста, выбери действие"
         return
     if not answer:
-        res['response']['text'] = "Урааа! Победа! Вы смогли изобрести лекарство от смертельной болезни. Вы спасли мир"
+        res['response'] = {
+            "text": f"Урааа! Победа! Вы смогли изобрести лекарство от смертельной болезни. Вы спасли мир",
+            "card": {
+                'type': "BigImage",
+                "image_id": win['img'],
+                'title': f"{win['name']}"}
+        }
         res['response']['end_session'] = True
     else:
         res['response']['text'] = "Вы победили противника, о вашем подвиге не забудут"
@@ -689,16 +721,21 @@ def rules(user_id, req, res):
                 "payload": {'text': "2"},
                 'hide': True
             },
-            {
-                "title": "Карточки",
-                "payload": {'text': "3"},
-                'hide': True
-            },
+            # {
+            #     "title": "Карточки",
+            #     "payload": {'text': "3"},
+            #     'hide': True
+            # },
             {
                 "title": "Конец игры",
                 "payload": {'text': "4"},
                 'hide': True
-            }
+            },
+            # {
+            #     "title": "Назад",
+            #     "payload": {'fight': "Назад"},
+            #     'hide': True
+            # }
         ]
     }
     session_state[user_id] = {
@@ -726,7 +763,7 @@ def dil(user_id, req, res):
                     "title": "Обнаружение болезни",
                     "payload": {'text': "Обнаружение болезни"},
                     'hide': True
-                }
+                },
             ]
         }
         session_state[user_id] = {
@@ -830,6 +867,9 @@ def dil(user_id, req, res):
             'state': 8
         }
         return
+    elif req['request']['payload']['text'] == "Назад":
+        res['response']['text'] = "Самое время начать игру!"
+        main()
 
 
 def adventure(user_id, req, res):
@@ -944,13 +984,42 @@ def prod(user_id, req, res):
 def player_turn(user_id, req, res):
     if req['request']['payload']['text'] == "добор карт":
         res['response']['text'] = "В игральную руку добавляются 2 карты городов, но их должно быть не больше 6"
+        res['response'] = {
+            "text": "В игральную руку добавляются 2 карты городов, но их должно быть не больше 6",
+            "buttons": [
+                {
+                    "title": "Назад",
+                    "payload": {'fight': True},
+                    'hide': True
+                }
+            ]
+        }
+        session_state[user_id] = {
+            'state': 8
+        }
+        return
+
     elif req['request']['payload']['text'] == "4 действия":
         pass
     elif req['request']['payload']['text'] == "Обнаружение болезни":
         res['response']['text'] = "Вы обнаруживаете болезни в некоторых городах, осторожно, могут возникнуть вспышки"
-    session_state[user_id] = {
-        'state': 10
-    }
+    # session_state[user_id] = {
+    #     'state': 10
+    # }
+        res['response'] = {
+            "text": "Вы обнаруживаете болезни в некоторых городах, осторожно, могут возникнуть вспышки",
+            "buttons": [
+                {
+                    "title": "Назад",
+                    "payload": {'fight': True},
+                    'hide': True
+                }
+            ]
+        }
+        session_state[user_id] = {
+            'state': 8
+        }
+        return
 
 
 def back(user_id, req, res):
