@@ -70,7 +70,7 @@ def offer_class(user_id, req, res):
         return
 
     if answer:
-        res['response']['text'] = "Сколько будет игроков от 2 до 4?"
+        res['response']['text'] = "Сколько будет игроков? Введите цифру 2"
         session_state[user_id] = {
             'state': 2
         }
@@ -242,8 +242,8 @@ def level1(user_id, req, res):
     player2 = []
     for q in user:
         randoms_city.append(q.city)
-    player1.append(random.SystemRandom().sample(randoms_city, 6))
-    # player1 = ['МИЛАН',  'МАДРИД', 'САНКТ-ПЕТЕРБУРГ', 'САН-ФРАНЦИСКО', 'ВАШИНГТОН']
+    # player1.append(random.SystemRandom().sample(randoms_city, 6))
+    player1 = ['МИЛАН',  'МАДРИД', 'САНКТ-ПЕТЕРБУРГ', 'САН-ФРАНЦИСКО', 'ВАШИНГТОН']
     player2.append(random.SystemRandom().sample(randoms_city, 6))
     # if req['request']['payload']['text'] == "Передвижение":
     #     res['response'] = {
